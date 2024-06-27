@@ -12,6 +12,9 @@ public class CommandFactory {
             case START -> {
                 return new StartCommand(bot);
             }
+            case CHANGE_ID -> {
+                return new ChangeIdCommand(bot);
+            }
             default -> {
                 return new UnknownCommand(bot);
             }

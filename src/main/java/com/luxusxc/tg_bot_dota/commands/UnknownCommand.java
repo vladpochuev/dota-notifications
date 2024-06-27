@@ -4,7 +4,7 @@ import com.luxusxc.tg_bot_dota.service.TelegramBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 public class UnknownCommand extends Command {
-    private static final String MESSAGE = "Sorry, command was not recognized";
+    private static final String MESSAGE = "Sorry, command was not recognized.";
     public UnknownCommand(TelegramBot bot) {
         super(bot);
     }
