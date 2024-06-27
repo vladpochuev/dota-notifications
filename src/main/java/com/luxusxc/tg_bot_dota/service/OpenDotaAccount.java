@@ -12,10 +12,16 @@ public class OpenDotaAccount implements DotaAccount {
     }
 
     @Override
-    public boolean isIdValid(String id) {
+    public String getNickname(String id) {
         String url = "https://api.opendota.com/api/players/";
         String jsonString = request.get(url + id);
         JSONObject json = new JSONObject(jsonString);
-        return !json.has("error");
+
+        String nickname = null;
+        if (!json.has("error")) {
+            nickname = json.getJSONObject("profile").getString("personaname");
+        }
+
+        return nickname;
     }
 }
