@@ -20,4 +20,6 @@ public class UserEntity {
     private String dotaId;
     private StatusType userStatus;
     private long lastMatchId;
+    private int winPerDay;
+    private int losePerDay;
 }

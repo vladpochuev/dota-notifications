@@ -31,25 +31,10 @@ public class RecentMatchChecker {
             String userId = user.getDotaId();
             Match match = bot.getDotaAccount().getLastMatch(userId);
 
-            if (!isUsersMatchSaved(user, match)) {
-                user.setLastMatchId(match.getId());
-                bot.getUserRepository().save(user);
-            } else return;
+            if (isUsersMatchSaved(user, match)) return;
 
-            String messageFormat = """
-                    %s
-                                                
-                    K/D/A           %d/%d/%d
-                    Hero damage     %d
-                    Tower damage    %d
-                    Hero healing    %d
-                    """;
-            String message = messageFormat.formatted(
-                    match.getIsWin() ? "Win" : "Lose",
-                    match.getKills(), match.getDeaths(), match.getAssists(),
-                    match.getHeroDamage(), match.getTowerDamage(), match.getHeroHealing());
-            bot.sendMessage(user.getChatId(), message);
-            log.info("User %s (dota_id=%s) was informed about recent match.".formatted(user.getFirstName(), user.getDotaId()));
+            refreshUsersData(user, match);
+            sendMatchStatistics(user, match);
         }
     }
 
@@ -62,5 +47,46 @@ public class RecentMatchChecker {
         long lastSavedMatchId = user.getLastMatchId();
         long lastMatchId = match.getId();
         return lastMatchId == lastSavedMatchId;
+    }
+
+    private void refreshUsersData(UserEntity user, Match match) {
+        user.setLastMatchId(match.getId());
+        if (match.getIsWin()) {
+            user.setWinPerDay(user.getWinPerDay() + 1);
+        } else {
+            user.setLosePerDay(user.getLosePerDay() + 1);
+        }
+
+        bot.getUserRepository().save(user);
+    }
+
+    private void sendMatchStatistics(UserEntity user, Match match) {
+        String messageFormat = """
+                %s
+                                            
+                K/D/A                   %d/%d/%d
+                Hero damage             %d
+                Tower damage            %d
+                Hero healing            %d
+                
+                Statistics for day      %d/%d (%s)
+                """;
+        String message = messageFormat.formatted(
+                match.getIsWin() ? "Win" : "Lose",
+                match.getKills(), match.getDeaths(), match.getAssists(),
+                match.getHeroDamage(), match.getTowerDamage(), match.getHeroHealing(),
+                user.getWinPerDay(), user.getLosePerDay(), getWLDifference(user));
+        bot.sendMessage(user.getChatId(), message);
+        log.info("User %s (dota_id=%s) was informed about recent match.".formatted(user.getFirstName(), user.getDotaId()));
+    }
+
+    private String getWLDifference(UserEntity user) {
+        StringBuilder builder = new StringBuilder();
+        int win = user.getWinPerDay();
+        int lose = user.getLosePerDay();
+        builder.append(win > lose ? "+" : "");
+        builder.append(win - lose);
+
+        return builder.toString();
     }
 }
