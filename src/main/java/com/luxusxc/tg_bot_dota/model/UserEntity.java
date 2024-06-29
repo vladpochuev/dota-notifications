@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Data
 public class UserEntity {
     @Id
-    private Long chatId;
+    private long chatId;
     private String firstName;
     private String lastName;
     private String userName;
@@ -19,4 +19,5 @@ public class UserEntity {
     private Timestamp registeredAt;
     private String dotaId;
     private StatusType userStatus;
+    private long lastMatchId;
 }

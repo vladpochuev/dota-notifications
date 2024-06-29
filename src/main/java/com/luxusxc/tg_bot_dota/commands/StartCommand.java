@@ -53,7 +53,7 @@ public class StartCommand extends Command {
         entity.setUserStatus(StatusType.DOTA_ID);
 
         bot.getUserRepository().save(entity);
-        log.info("user saved: " + entity);
+        log.info("User saved: " + entity);
 
     }
 
