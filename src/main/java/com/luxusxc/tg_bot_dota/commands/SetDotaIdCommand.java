@@ -28,7 +28,7 @@ public class SetDotaIdCommand extends Command {
         if (dotaNickname != null) {
             UserRepository repository = bot.getUserRepository();
             UserEntity user = repository.findById(chatId).orElseThrow();
-            Match lastMatch = account.getLastMatch(accountId);
+            Match lastMatch = account.getLastMatch(accountId, false);
             user.setDotaId(accountId);
             user.setUserStatus(null);
             user.setLastMatchId(lastMatch.getId());

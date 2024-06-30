@@ -33,7 +33,7 @@ public class OpenDotaAccount implements DotaAccount {
     }
 
     @Override
-    public Match getLastMatch(String id) {
+    public Match getLastMatch(String id, boolean fullMatchInfo) {
         String urlFormat = "https://api.opendota.com/api/players/%s/recentMatches";
         String jsonString = request.get(urlFormat.formatted(id));
 
@@ -41,7 +41,10 @@ public class OpenDotaAccount implements DotaAccount {
             ObjectMapper objectMapper = new ObjectMapper();
             List<Match> matches = objectMapper.readValue(jsonString, new TypeReference<>() {});
             Match lastMatch = matches.get(0);
-            lastMatch.setIsWin(isMatchWin(lastMatch.getId(), id));
+            if (fullMatchInfo) {
+                boolean isWin = isMatchWin(lastMatch.getId(), id);
+                lastMatch.setIsWin(isWin);
+            }
             return lastMatch;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

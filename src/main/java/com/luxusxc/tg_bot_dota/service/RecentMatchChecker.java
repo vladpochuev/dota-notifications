@@ -16,7 +16,7 @@ public class RecentMatchChecker {
         this.bot = bot;
     }
 
-    @Scheduled(fixedDelay = 90000)
+    @Scheduled(fixedDelay = 45000)
     private void checkMatches() {
         UserRepository repository = bot.getUserRepository();
         Iterable<UserEntity> users = repository.findAll();
@@ -29,10 +29,12 @@ public class RecentMatchChecker {
     private void checkUser(UserEntity user) {
         if (checkUserActive(user)) {
             String userId = user.getDotaId();
-            Match match = bot.getDotaAccount().getLastMatch(userId);
+            DotaAccount account = bot.getDotaAccount();
+            Match match = account.getLastMatch(userId, false);
 
             if (isUsersMatchSaved(user, match)) return;
 
+            match = account.getLastMatch(userId, true);
             refreshUsersData(user, match);
             sendMatchStatistics(user, match);
         }
