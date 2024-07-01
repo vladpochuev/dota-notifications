@@ -3,6 +3,7 @@ package com.luxusxc.tg_bot_dota.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.luxusxc.tg_bot_dota.model.HeroStats;
 import com.luxusxc.tg_bot_dota.model.Match;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,9 +14,11 @@ import java.util.List;
 @Service
 public class OpenDotaAccount implements DotaAccount {
     private final GetRequest request;
+    private final ObjectMapper mapper;
 
     public OpenDotaAccount(GetRequest request) {
         this.request = request;
+        mapper = new ObjectMapper();
     }
 
     @Override
@@ -38,8 +41,7 @@ public class OpenDotaAccount implements DotaAccount {
         String jsonString = request.get(urlFormat.formatted(id));
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<Match> matches = objectMapper.readValue(jsonString, new TypeReference<>() {});
+            List<Match> matches = mapper.readValue(jsonString, new TypeReference<>() {});
             Match lastMatch = matches.get(0);
             if (fullMatchInfo) {
                 boolean isWin = isMatchWin(lastMatch.getId(), id);
@@ -57,5 +59,17 @@ public class OpenDotaAccount implements DotaAccount {
         JSONObject json = new JSONArray(jsonString).getJSONObject(0);
 
         return json.getLong("match_id") == matchId;
+    }
+
+    @Override
+    public HeroStats getHeroStats(String userId, int heroId) {
+        String urlFormat = "https://api.opendota.com/api/players/%s/heroes?hero_id=%d";
+        String jsonString = request.get(urlFormat.formatted(userId, heroId));
+        try {
+            List<HeroStats> stats = mapper.readValue(jsonString, new TypeReference<>() {});
+            return stats.get(0);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -10,6 +10,8 @@ public class Match {
     @JsonProperty("match_id")
     private long id;
     private Boolean isWin;
+    @JsonProperty("hero_id")
+    private int heroId;
     @JsonProperty("kills")
     private int kills;
     @JsonProperty("deaths")

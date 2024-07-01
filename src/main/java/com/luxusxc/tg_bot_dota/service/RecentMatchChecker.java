@@ -1,11 +1,11 @@
 package com.luxusxc.tg_bot_dota.service;
 
-import com.luxusxc.tg_bot_dota.model.Match;
-import com.luxusxc.tg_bot_dota.model.UserEntity;
-import com.luxusxc.tg_bot_dota.model.UserRepository;
+import com.luxusxc.tg_bot_dota.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
 
 @Service
 @Slf4j
@@ -65,21 +65,40 @@ public class RecentMatchChecker {
     private void sendMatchStatistics(UserEntity user, Match match) {
         String messageFormat = """
                 %s
-                                            
+                
+                Hero                    %s
                 K/D/A                   %d/%d/%d
                 Hero damage             %d
                 Tower damage            %d
                 Hero healing            %d
                 
                 Statistics for day      %d/%d (%s)
+                %s winrate              %s
                 """;
+
+        String winrate = getHeroWinrate(user.getDotaId(), match);
+        Hero hero = Hero.getById(match.getHeroId());
         String message = messageFormat.formatted(
-                match.getIsWin() ? "Win" : "Lose",
+                match.getIsWin() ? "Win" : "Lose", hero.getName(),
                 match.getKills(), match.getDeaths(), match.getAssists(),
                 match.getHeroDamage(), match.getTowerDamage(), match.getHeroHealing(),
-                user.getWinPerDay(), user.getLosePerDay(), getWLDifference(user));
+                user.getWinPerDay(), user.getLosePerDay(), getWLDifference(user),
+                hero.getName(), winrate);
         bot.sendMessage(user.getChatId(), message);
         log.info("User %s (dota_id=%s) was informed about recent match.".formatted(user.getFirstName(), user.getDotaId()));
+    }
+
+    private String getHeroWinrate(String userId, Match match) {
+        DotaAccount account = bot.getDotaAccount();
+        HeroStats hero = account.getHeroStats(userId, match.getHeroId());
+        DecimalFormat df = new DecimalFormat("#.#");
+
+        double winrate = (double) hero.getWin() / hero.getGames() * 100;
+        String winrateStr = df.format(winrate);
+        double winrateDiff = (double)((hero.getGames() * (match.getIsWin() ? 1 : 0) - hero.getWin()) * 100) / (hero.getGames() * (hero.getGames() - 1));
+        String winrateDiffStr = (match.getIsWin() ? "+" : "") + df.format(winrateDiff);
+
+        return "%s%% (%s%%)".formatted(winrateStr, winrateDiffStr);
     }
 
     private String getWLDifference(UserEntity user) {
