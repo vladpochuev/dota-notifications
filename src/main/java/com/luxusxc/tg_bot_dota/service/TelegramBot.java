@@ -78,20 +78,17 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private Command defineCommand(String messageText) {
         CommandFactory commandFactory = new CommandFactory(this);
-        for (CommandType value : CommandType.values()) {
-            String commandBody = Utils.getCommandBody(messageText);
-            if (commandBody.equals(value.body)) {
-                return commandFactory.getCommand(value);
-            }
+        String commandBody = Utils.getCommandBody(messageText);
+        CommandType commandType = CommandType.getCommand(commandBody);
+        if (commandType != null) {
+            return commandFactory.getCommand(commandType);
         }
+
         return new UnknownCommand(this);
     }
 
     public void sendMessage(long chatId, String textToSend) {
-        SendMessage message = new SendMessage();
-        message.setChatId(String.valueOf(chatId));
-        message.setText(textToSend);
-        sendMessage(message);
+        sendMessage(chatId, textToSend, null);
     }
 
     public void sendMessage(SendMessage message) {
@@ -100,6 +97,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             log.error("Error occurred: " + e.getMessage());
         }
+    }
+
+    public void sendMessage(long chatId, String textToSend, String parseMode) {
+        SendMessage message = new SendMessage();
+        message.setChatId(String.valueOf(chatId));
+        message.setText(textToSend);
+        message.setParseMode(parseMode);
+        sendMessage(message);
     }
 
     @Override
